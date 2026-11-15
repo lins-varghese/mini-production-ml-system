@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Data is downloaded and split by scripts, never committed.
+data/raw/
+data/processed/
+
+# Run logs and large generated outputs
+*.log
+reports/batch_predictions.csv
+
+# Editors and operating system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

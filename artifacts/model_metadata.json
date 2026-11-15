@@ -1,0 +1,295 @@
+{
+  "model_version": "1.0.0",
+  "trained_at_utc": "2026-11-15T14:45:57Z",
+  "production_model": "lightgbm",
+  "candidates": {
+    "logreg": {
+      "artifact": "model_logreg.joblib",
+      "threshold": 0.73
+    },
+    "lightgbm": {
+      "artifact": "model_lightgbm.joblib",
+      "threshold": 0.66
+    }
+  },
+  "threshold_rule": "maximise F1-macro on the validation set",
+  "features": {
+    "numeric": [
+      "tenure",
+      "MonthlyCharges",
+      "TotalCharges",
+      "num_addon_services"
+    ],
+    "categorical": [
+      "gender",
+      "SeniorCitizen",
+      "Partner",
+      "Dependents",
+      "PhoneService",
+      "MultipleLines",
+      "InternetService",
+      "OnlineSecurity",
+      "OnlineBackup",
+      "DeviceProtection",
+      "TechSupport",
+      "StreamingTV",
+      "StreamingMovies",
+      "Contract",
+      "PaperlessBilling",
+      "PaymentMethod"
+    ]
+  },
+  "numeric_ranges": {
+    "tenure": {
+      "min": 0.0,
+      "max": 72.0
+    },
+    "MonthlyCharges": {
+      "min": 18.4,
+      "max": 118.75
+    },
+    "TotalCharges": {
+      "min": 0.0,
+      "max": 8684.8
+    }
+  },
+  "known_categories": {
+    "gender": [
+      "Female",
+      "Male"
+    ],
+    "SeniorCitizen": [
+      "No",
+      "Yes"
+    ],
+    "Partner": [
+      "No",
+      "Yes"
+    ],
+    "Dependents": [
+      "No",
+      "Yes"
+    ],
+    "PhoneService": [
+      "No",
+      "Yes"
+    ],
+    "MultipleLines": [
+      "No",
+      "No phone service",
+      "Yes"
+    ],
+    "InternetService": [
+      "DSL",
+      "Fiber optic",
+      "No"
+    ],
+    "OnlineSecurity": [
+      "No",
+      "No internet service",
+      "Yes"
+    ],
+    "OnlineBackup": [
+      "No",
+      "No internet service",
+      "Yes"
+    ],
+    "DeviceProtection": [
+      "No",
+      "No internet service",
+      "Yes"
+    ],
+    "TechSupport": [
+      "No",
+      "No internet service",
+      "Yes"
+    ],
+    "StreamingTV": [
+      "No",
+      "No internet service",
+      "Yes"
+    ],
+    "StreamingMovies": [
+      "No",
+      "No internet service",
+      "Yes"
+    ],
+    "Contract": [
+      "Month-to-month",
+      "One year",
+      "Two year"
+    ],
+    "PaperlessBilling": [
+      "No",
+      "Yes"
+    ],
+    "PaymentMethod": [
+      "Bank transfer (automatic)",
+      "Credit card (automatic)",
+      "Electronic check",
+      "Mailed check"
+    ]
+  },
+  "fallback": {
+    "segment_table": {
+      "global_rate": 0.2653,
+      "segments": {
+        "Month-to-month|0-12": {
+          "rate": 0.5142,
+          "n": 1410
+        },
+        "Month-to-month|13-24": {
+          "rate": 0.3704,
+          "n": 494
+        },
+        "Month-to-month|25-48": {
+          "rate": 0.3285,
+          "n": 554
+        },
+        "Month-to-month|49+": {
+          "rate": 0.2805,
+          "n": 246
+        },
+        "One year|0-12": {
+          "rate": 0.0988,
+          "n": 81
+        },
+        "One year|13-24": {
+          "rate": 0.069,
+          "n": 145
+        },
+        "One year|25-48": {
+          "rate": 0.1041,
+          "n": 365
+        },
+        "One year|49+": {
+          "rate": 0.1287,
+          "n": 443
+        },
+        "Two year|0-12": {
+          "rate": 0.0,
+          "n": 46
+        },
+        "Two year|13-24": {
+          "rate": 0.0,
+          "n": 68
+        },
+        "Two year|25-48": {
+          "rate": 0.0151,
+          "n": 199
+        },
+        "Two year|49+": {
+          "rate": 0.0375,
+          "n": 879
+        }
+      }
+    },
+    "threshold": 0.38
+  },
+  "training": {
+    "train_rows": 4930,
+    "validation_rows": 1056,
+    "train_churn_rate": 0.2653,
+    "random_seed": 42,
+    "lightgbm_best_params": {
+      "subsample_freq": 1,
+      "subsample": 1.0,
+      "reg_lambda": 10.0,
+      "num_leaves": 4,
+      "n_estimators": 200,
+      "min_child_samples": 80,
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "colsample_bytree": 0.6
+    },
+    "lightgbm_cv_pr_auc_mean": 0.6728,
+    "lightgbm_cv_pr_auc_std": 0.0238
+  },
+  "validation_metrics": {
+    "dummy_prior": {
+      "pr_auc": 0.2652,
+      "roc_auc": 0.5,
+      "recall_at_precision": 0.0,
+      "threshold": 0.5,
+      "f1_macro": 0.4236,
+      "precision_churn": 0.0,
+      "recall_churn": 0.0,
+      "accuracy": 0.7348,
+      "confusion": {
+        "tn": 776,
+        "fp": 0,
+        "fn": 280,
+        "tp": 0
+      }
+    },
+    "segment_rule": {
+      "pr_auc": 0.4754,
+      "roc_auc": 0.7787,
+      "recall_at_precision": 0.0,
+      "threshold": 0.38,
+      "f1_macro": 0.6784,
+      "precision_churn": 0.5168,
+      "recall_churn": 0.55,
+      "accuracy": 0.7443,
+      "confusion": {
+        "tn": 632,
+        "fp": 144,
+        "fn": 126,
+        "tp": 154
+      }
+    },
+    "logreg": {
+      "pr_auc": 0.6316,
+      "roc_auc": 0.8449,
+      "recall_at_precision": 0.6357,
+      "threshold": 0.73,
+      "f1_macro": 0.7494,
+      "precision_churn": 0.6575,
+      "recall_churn": 0.5964,
+      "accuracy": 0.8106,
+      "confusion": {
+        "tn": 689,
+        "fp": 87,
+        "fn": 113,
+        "tp": 167
+      }
+    },
+    "lightgbm": {
+      "pr_auc": 0.6483,
+      "roc_auc": 0.85,
+      "recall_at_precision": 0.6536,
+      "threshold": 0.66,
+      "f1_macro": 0.7477,
+      "precision_churn": 0.5981,
+      "recall_churn": 0.6857,
+      "accuracy": 0.7945,
+      "confusion": {
+        "tn": 647,
+        "fp": 129,
+        "fn": 88,
+        "tp": 192
+      }
+    },
+    "lightgbm_at_default_0.5": {
+      "pr_auc": 0.6483,
+      "roc_auc": 0.85,
+      "recall_at_precision": 0.6536,
+      "threshold": 0.5,
+      "f1_macro": 0.7204,
+      "precision_churn": 0.5119,
+      "recall_churn": 0.8429,
+      "accuracy": 0.7453,
+      "confusion": {
+        "tn": 551,
+        "fp": 225,
+        "fn": 44,
+        "tp": 236
+      }
+    }
+  },
+  "library_versions": {
+    "python": "3.12.10",
+    "scikit-learn": "1.9.1",
+    "lightgbm": "4.7.0"
+  }
+}

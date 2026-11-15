@@ -1,0 +1,36 @@
+{
+  "url": "http://127.0.0.1:8711",
+  "requests": 500,
+  "warmup_requests": 20,
+  "errors": 0,
+  "client_latency_ms": {
+    "p50": 20.735,
+    "p95": 25.246,
+    "p99": 29.431,
+    "mean": 21.186,
+    "min": 18.695,
+    "max": 32.849
+  },
+  "server_latency_ms": {
+    "p50": 19.53,
+    "p95": 23.677,
+    "p99": 27.851,
+    "mean": 19.895,
+    "min": 17.66,
+    "max": 31.32
+  },
+  "sequential_requests_per_second": 47.2,
+  "health": {
+    "status": "ok",
+    "model_loaded": true,
+    "fallback_ready": true,
+    "model_version": "lightgbm-1.0.0"
+  },
+  "environment": {
+    "platform": "Windows-11-10.0.26300-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "logical_cpus": 18,
+    "python": "3.12.10"
+  },
+  "setup": "one uvicorn worker, one client, sequential requests, keep-alive connection, localhost"
+}

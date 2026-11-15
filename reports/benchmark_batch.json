@@ -1,0 +1,22 @@
+{
+  "rows": 100000,
+  "repeats": 3,
+  "seconds_per_run": [
+    0.814,
+    0.801,
+    0.818
+  ],
+  "median_seconds": 0.814,
+  "records_per_second": 122885,
+  "served_by": {
+    "model": 100000
+  },
+  "model_version": "lightgbm-1.0.0",
+  "environment": {
+    "platform": "Windows-11-10.0.26300-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "logical_cpus": 18,
+    "python": "3.12.10"
+  },
+  "setup": "in-process ChurnScorer.score on batch_input_unseen.csv repeated to 100,000 rows; includes cleaning, preprocessing and model"
+}

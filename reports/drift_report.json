@@ -1,0 +1,297 @@
+{
+  "thresholds": {
+    "psi_warning": 0.1,
+    "psi_alert": 0.25,
+    "ks_statistic_alert": 0.1,
+    "ks_p_value": 0.01
+  },
+  "train_vs_test": {
+    "reference_rows": 4930,
+    "current_rows": 1057,
+    "overall_status": "stable",
+    "features_in_alert": [],
+    "features_in_warning": [],
+    "features": [
+      {
+        "feature": "tenure",
+        "type": "numeric",
+        "psi": 0.0058,
+        "psi_status": "stable",
+        "ks_statistic": 0.0229,
+        "ks_p_value": 0.739,
+        "ks_flag": false
+      },
+      {
+        "feature": "MonthlyCharges",
+        "type": "numeric",
+        "psi": 0.016,
+        "psi_status": "stable",
+        "ks_statistic": 0.0409,
+        "ks_p_value": 0.106,
+        "ks_flag": false
+      },
+      {
+        "feature": "TotalCharges",
+        "type": "numeric",
+        "psi": 0.0176,
+        "psi_status": "stable",
+        "ks_statistic": 0.0247,
+        "ks_p_value": 0.653,
+        "ks_flag": false
+      },
+      {
+        "feature": "gender",
+        "type": "categorical",
+        "psi": 0.0015,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "SeniorCitizen",
+        "type": "categorical",
+        "psi": 0.0006,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "Partner",
+        "type": "categorical",
+        "psi": 0.0001,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "Dependents",
+        "type": "categorical",
+        "psi": 0.0009,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "PhoneService",
+        "type": "categorical",
+        "psi": 0.0009,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "MultipleLines",
+        "type": "categorical",
+        "psi": 0.0026,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "InternetService",
+        "type": "categorical",
+        "psi": 0.0024,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "OnlineSecurity",
+        "type": "categorical",
+        "psi": 0.0006,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "OnlineBackup",
+        "type": "categorical",
+        "psi": 0.0009,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "DeviceProtection",
+        "type": "categorical",
+        "psi": 0.0006,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "TechSupport",
+        "type": "categorical",
+        "psi": 0.0043,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "StreamingTV",
+        "type": "categorical",
+        "psi": 0.005,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "StreamingMovies",
+        "type": "categorical",
+        "psi": 0.0053,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "Contract",
+        "type": "categorical",
+        "psi": 0.0003,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "PaperlessBilling",
+        "type": "categorical",
+        "psi": 0.0013,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "PaymentMethod",
+        "type": "categorical",
+        "psi": 0.0002,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "model_score",
+        "type": "score",
+        "psi": 0.0087,
+        "psi_status": "stable",
+        "ks_statistic": 0.0274,
+        "ks_p_value": 0.52,
+        "ks_flag": false
+      }
+    ]
+  },
+  "train_vs_shifted": {
+    "reference_rows": 4930,
+    "current_rows": 1057,
+    "overall_status": "alert",
+    "features_in_alert": [
+      "tenure",
+      "MonthlyCharges",
+      "PaymentMethod"
+    ],
+    "features_in_warning": [
+      "Contract",
+      "model_score"
+    ],
+    "features": [
+      {
+        "feature": "tenure",
+        "type": "numeric",
+        "psi": 2.1989,
+        "psi_status": "alert",
+        "ks_statistic": 0.3647,
+        "ks_p_value": 8.83e-104,
+        "ks_flag": true
+      },
+      {
+        "feature": "MonthlyCharges",
+        "type": "numeric",
+        "psi": 1.0589,
+        "psi_status": "alert",
+        "ks_statistic": 0.234,
+        "ks_p_value": 2.53e-42,
+        "ks_flag": true
+      },
+      {
+        "feature": "TotalCharges",
+        "type": "numeric",
+        "psi": 0.0176,
+        "psi_status": "stable",
+        "ks_statistic": 0.0247,
+        "ks_p_value": 0.653,
+        "ks_flag": false
+      },
+      {
+        "feature": "gender",
+        "type": "categorical",
+        "psi": 0.0015,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "SeniorCitizen",
+        "type": "categorical",
+        "psi": 0.0006,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "Partner",
+        "type": "categorical",
+        "psi": 0.0001,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "Dependents",
+        "type": "categorical",
+        "psi": 0.0009,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "PhoneService",
+        "type": "categorical",
+        "psi": 0.0009,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "MultipleLines",
+        "type": "categorical",
+        "psi": 0.0026,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "InternetService",
+        "type": "categorical",
+        "psi": 0.0024,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "OnlineSecurity",
+        "type": "categorical",
+        "psi": 0.0006,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "OnlineBackup",
+        "type": "categorical",
+        "psi": 0.0009,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "DeviceProtection",
+        "type": "categorical",
+        "psi": 0.0006,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "TechSupport",
+        "type": "categorical",
+        "psi": 0.0043,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "StreamingTV",
+        "type": "categorical",
+        "psi": 0.005,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "StreamingMovies",
+        "type": "categorical",
+        "psi": 0.0053,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "Contract",
+        "type": "categorical",
+        "psi": 0.1227,
+        "psi_status": "warning"
+      },
+      {
+        "feature": "PaperlessBilling",
+        "type": "categorical",
+        "psi": 0.0013,
+        "psi_status": "stable"
+      },
+      {
+        "feature": "PaymentMethod",
+        "type": "categorical",
+        "psi": 0.9949,
+        "psi_status": "alert"
+      },
+      {
+        "feature": "model_score",
+        "type": "score",
+        "psi": 0.1444,
+        "psi_status": "warning",
+        "ks_statistic": 0.1427,
+        "ks_p_value": 6.45e-16,
+        "ks_flag": true
+      }
+    ]
+  }
+}

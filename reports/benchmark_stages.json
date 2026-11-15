@@ -1,0 +1,32 @@
+{
+  "repeats": 300,
+  "model_version": "lightgbm-1.0.0",
+  "stages": {
+    "build one-row table and clean it": {
+      "median_ms": 7.794,
+      "p95_ms": 13.241
+    },
+    "data checks and clipping": {
+      "median_ms": 5.477,
+      "p95_ms": 9.029
+    },
+    "preprocessing (impute, scale, one-hot)": {
+      "median_ms": 3.306,
+      "p95_ms": 6.177
+    },
+    "model predict_proba": {
+      "median_ms": 0.406,
+      "p95_ms": 1.727
+    },
+    "whole score_one call": {
+      "median_ms": 23.713,
+      "p95_ms": 36.738
+    }
+  },
+  "environment": {
+    "platform": "Windows-11-10.0.26300-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "logical_cpus": 18,
+    "python": "3.12.10"
+  }
+}

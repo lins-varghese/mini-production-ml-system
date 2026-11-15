@@ -1,0 +1,199 @@
+[
+  {
+    "case": "valid payload",
+    "category": "valid",
+    "status_code": 200,
+    "served_by": "model",
+    "churn_score": 0.8665,
+    "churn_prediction": 1,
+    "warnings": []
+  },
+  {
+    "case": "only the 3 required fields",
+    "category": "missing values",
+    "status_code": 200,
+    "served_by": "model",
+    "churn_score": 0.7683,
+    "churn_prediction": 1,
+    "warnings": [
+      "missing fields were imputed: TotalCharges, gender, SeniorCitizen, Partner, Dependents, PhoneService, MultipleLines, InternetService, OnlineSecurity, OnlineBackup, DeviceProtection, TechSupport, StreamingTV, StreamingMovies, PaperlessBilling, PaymentMethod"
+    ]
+  },
+  {
+    "case": "optional fields sent as null",
+    "category": "missing values",
+    "status_code": 200,
+    "served_by": "model",
+    "churn_score": 0.8662,
+    "churn_prediction": 1,
+    "warnings": [
+      "missing fields were imputed: TotalCharges, InternetService, PaymentMethod"
+    ]
+  },
+  {
+    "case": "unseen PaymentMethod 'Crypto wallet'",
+    "category": "unseen category",
+    "status_code": 200,
+    "served_by": "model",
+    "churn_score": 0.8262,
+    "churn_prediction": 1,
+    "warnings": [
+      "unknown category for PaymentMethod: 'Crypto wallet' (not seen in training)"
+    ]
+  },
+  {
+    "case": "unseen Contract 'Five year'",
+    "category": "unseen category",
+    "status_code": 200,
+    "served_by": "model",
+    "churn_score": 0.6489,
+    "churn_prediction": 0,
+    "warnings": [
+      "unknown category for Contract: 'Five year' (not seen in training)"
+    ]
+  },
+  {
+    "case": "MonthlyCharges 9999 and tenure 600",
+    "category": "extreme outlier",
+    "status_code": 200,
+    "served_by": "model",
+    "churn_score": 0.4207,
+    "churn_prediction": 0,
+    "warnings": [
+      "tenure=600 is outside the training range [0, 72] and was clipped",
+      "MonthlyCharges=9999 is outside the training range [18.4, 118.75] and was clipped",
+      "TotalCharges=5e+06 is outside the training range [0, 8684.8] and was clipped"
+    ]
+  },
+  {
+    "case": "tenure -5",
+    "category": "malformed",
+    "status_code": 422,
+    "error": "invalid_request",
+    "detail": [
+      {
+        "field": "tenure",
+        "problem": "Input should be greater than or equal to 0"
+      }
+    ]
+  },
+  {
+    "case": "tenure 'twelve'",
+    "category": "malformed",
+    "status_code": 422,
+    "error": "invalid_request",
+    "detail": [
+      {
+        "field": "tenure",
+        "problem": "Input should be a valid integer, unable to parse string as an integer"
+      }
+    ]
+  },
+  {
+    "case": "MonthlyCharges NaN",
+    "category": "malformed",
+    "status_code": 422,
+    "error": "invalid_request",
+    "detail": [
+      {
+        "field": "MonthlyCharges",
+        "problem": "Input should be a finite number"
+      }
+    ]
+  },
+  {
+    "case": "required field Contract left out",
+    "category": "malformed",
+    "status_code": 422,
+    "error": "invalid_request",
+    "detail": [
+      {
+        "field": "Contract",
+        "problem": "Field required"
+      }
+    ]
+  },
+  {
+    "case": "unknown extra field 'favourite_colour'",
+    "category": "malformed",
+    "status_code": 422,
+    "error": "invalid_request",
+    "detail": [
+      {
+        "field": "favourite_colour",
+        "problem": "Extra inputs are not permitted"
+      }
+    ]
+  },
+  {
+    "case": "SeniorCitizen 7",
+    "category": "malformed",
+    "status_code": 422,
+    "error": "invalid_request",
+    "detail": [
+      {
+        "field": "SeniorCitizen",
+        "problem": "Input should be 0 or 1"
+      }
+    ]
+  },
+  {
+    "case": "empty JSON object",
+    "category": "malformed",
+    "status_code": 422,
+    "error": "invalid_request",
+    "detail": [
+      {
+        "field": "tenure",
+        "problem": "Field required"
+      },
+      {
+        "field": "MonthlyCharges",
+        "problem": "Field required"
+      },
+      {
+        "field": "Contract",
+        "problem": "Field required"
+      }
+    ]
+  },
+  {
+    "case": "body is not JSON",
+    "category": "malformed",
+    "status_code": 422,
+    "error": "invalid_request",
+    "detail": [
+      {
+        "field": "body",
+        "problem": "JSON decode error"
+      }
+    ]
+  },
+  {
+    "case": "model crashes while scoring",
+    "category": "model failure",
+    "status_code": 200,
+    "served_by": "fallback",
+    "churn_score": 0.5142,
+    "churn_prediction": 1,
+    "warnings": []
+  },
+  {
+    "case": "model artifact not loaded",
+    "category": "model failure",
+    "health_status": "degraded",
+    "status_code": 200,
+    "served_by": "fallback",
+    "churn_score": 0.5142,
+    "churn_prediction": 1,
+    "warnings": []
+  },
+  {
+    "case": "model and metadata both unavailable",
+    "category": "model failure",
+    "health_status": "down",
+    "status_code": 503,
+    "error": "scoring_unavailable",
+    "detail": "Model metadata is not loaded, cannot score."
+  }
+]

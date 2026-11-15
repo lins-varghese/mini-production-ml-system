@@ -1,0 +1,21 @@
+{
+  "raw_rows": 7043,
+  "raw_columns": 21,
+  "blank_total_charges": 11,
+  "overall_churn_rate": 0.2654,
+  "random_seed": 42,
+  "splits": {
+    "train": {
+      "rows": 4930,
+      "churn_rate": 0.2653
+    },
+    "val": {
+      "rows": 1056,
+      "churn_rate": 0.2652
+    },
+    "test": {
+      "rows": 1057,
+      "churn_rate": 0.2658
+    }
+  }
+}
