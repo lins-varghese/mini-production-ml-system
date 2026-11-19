@@ -48,7 +48,7 @@ def build_cases() -> list:
         ("unseen PaymentMethod 'Crypto wallet'", "unseen category",
          {"json": customer(PaymentMethod="Crypto wallet")}),
         ("unseen Contract 'Five year'", "unseen category", {"json": customer(Contract="Five year")}),
-        ("MonthlyCharges 9999 and tenure 600", "extreme outlier",
+        ("MonthlyCharges 9999, tenure 600 and TotalCharges 5000000", "extreme outlier",
          {"json": customer(MonthlyCharges=9999, tenure=600, TotalCharges=5000000)}),
         ("tenure -5", "malformed", {"json": customer(tenure=-5)}),
         ("tenure 'twelve'", "malformed", {"json": customer(tenure="twelve")}),
@@ -90,12 +90,15 @@ def main() -> None:
             results.append({"case": name, "category": category, **summarise(response)})
 
         # Failure injection 1: the model crashes, the fallback must answer.
+        # /health is asked after the request, because it reports on the most
+        # recent scoring attempt.
         scorer = client.app.state.scorer
         real_pipeline = scorer.pipeline
         scorer.pipeline = BrokenModel()
         response = client.post("/predict", json=customer())
+        health = client.get("/health").json()
         results.append({"case": "model crashes while scoring", "category": "model failure",
-                        **summarise(response)})
+                        "health_status": health["status"], **summarise(response)})
 
         # Failure injection 2: the model artifact is missing entirely.
         scorer.pipeline = None
@@ -119,13 +122,13 @@ def main() -> None:
     with open(config.REPORT_DIR / "robustness_results.json", "w", encoding="utf-8") as handle:
         json.dump(results, handle, indent=2)
 
-    print(f"{'case':42s} {'HTTP':>4s}  outcome")
+    print(f"{'case':58s} {'HTTP':>4s}  outcome")
     for row in results:
         if row["status_code"] == 200:
             outcome = f"scored by {row['served_by']}, score {row['churn_score']:.3f}, {len(row['warnings'])} warning(s)"
         else:
             outcome = f"{row['error']}"
-        print(f"{row['case']:42s} {row['status_code']:4d}  {outcome}")
+        print(f"{row['case']:58s} {row['status_code']:4d}  {outcome}")
     print("\nSaved reports/robustness_results.json")
 
 

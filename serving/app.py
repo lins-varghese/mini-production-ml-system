@@ -7,6 +7,11 @@ Start it from the repository root:
 Endpoints:
     GET  /health   is the service up, and is it running on the model or the fallback
     POST /predict  score one customer
+
+/health says "ok" when the model is loaded and answered the most recent
+scoring attempt, "degraded" when the fallback rule is answering (model file
+not loaded, or the model raised on the most recent attempt), and "down"
+when nothing can score.
 """
 import logging
 import time
@@ -62,10 +67,13 @@ async def invalid_request(request: Request, exc: RequestValidationError):
 @app.get("/health", response_model=HealthResponse)
 def health(request: Request):
     scorer = request.app.state.scorer
-    if scorer.model_ready:
+    if scorer.model_healthy:
         status = "ok"
     elif scorer.fallback_ready:
-        status = "degraded"   # still answering, but with the fallback rule
+        # Still answering, but with the fallback rule: the model file is not
+        # loaded, or the model raised an error on the most recent scoring
+        # attempt. The status goes back to "ok" once the model answers again.
+        status = "degraded"
     else:
         status = "down"
     return HealthResponse(

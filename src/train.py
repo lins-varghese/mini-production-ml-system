@@ -17,8 +17,12 @@ What happens here, in order:
    the API needs: the fitted pipelines and one metadata JSON file.
 
 Class imbalance is handled with class weights and threshold tuning. I do not
-oversample, because copied or synthetic rows change the data the model sees
-and make the predicted probabilities harder to trust.
+oversample. Copied churners add no new information, and if the copies are
+made before cross-validation, the same customer can sit in both the fitting
+fold and the scoring fold, which makes the tuning scores look better than
+they are. Class weights rebalance the loss without touching the rows. Either
+way the output is shifted upwards, so it is a risk score and not a calibrated
+probability.
 """
 import json
 import platform
@@ -134,20 +138,22 @@ def plot_threshold_curve(y_val, scores, chosen, path) -> None:
     precision = [precision_score(y_val, scores >= t, zero_division=0) for t in thresholds]
     recall = [recall_score(y_val, scores >= t, zero_division=0) for t in thresholds]
 
-    fig, ax = plt.subplots(figsize=(6.2, 4.2))
+    # A small figure at a high dpi keeps the text readable when the image
+    # is placed in the report at about half the page width.
+    fig, ax = plt.subplots(figsize=(4.6, 3.3))
     ax.plot(thresholds, f1_macro, label="F1-macro", color="#1d4ed8", linewidth=2)
     ax.plot(thresholds, precision, label="Precision (churn)", color="#059669", linewidth=1.5)
     ax.plot(thresholds, recall, label="Recall (churn)", color="#d97706", linewidth=1.5)
     ax.axvline(chosen, color="#dc2626", linestyle="--", linewidth=1.2,
                label=f"Chosen threshold {chosen:.2f}")
     ax.axvline(0.5, color="#9ca3af", linestyle=":", linewidth=1.2, label="Default 0.50")
-    ax.set_xlabel("Decision threshold on the model score")
-    ax.set_ylabel("Metric value")
-    ax.set_title("Threshold tuning on the validation set")
+    ax.set_xlabel("Decision threshold on the model score", fontsize=9)
+    ax.set_ylabel("Metric value", fontsize=9)
+    ax.set_title("Threshold tuning on the validation set", fontsize=10)
     ax.grid(alpha=0.3)
-    ax.legend(fontsize=8)
+    ax.legend(fontsize=7, labelspacing=0.3)
     fig.tight_layout()
-    fig.savefig(path, dpi=160)
+    fig.savefig(path, dpi=200)
     plt.close(fig)
 
 

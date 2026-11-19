@@ -76,36 +76,45 @@ def compute_metrics(y_true, scores, threshold) -> dict:
 
 
 def plot_pr_curves(y_true, score_by_model, operating_point, path) -> None:
-    """Precision-recall curves on one chart, with the chosen threshold marked."""
-    fig, ax = plt.subplots(figsize=(6.2, 4.6))
+    """Precision-recall curves on one chart, with the chosen threshold marked.
+
+    Each curve is drawn as steps between the cut-offs that really exist in
+    the scores. precision_recall_curve() always adds one extra end point
+    (precision 1, recall 0) that no cut-off produces. I leave it out, because
+    a straight line to that point would show precision levels a model with
+    only a few distinct scores (the segment rule) can never reach.
+    """
+    fig, ax = plt.subplots(figsize=(4.9, 3.75))
     colors = {"Logistic regression": "#6b7280", "LightGBM": "#1d4ed8", "Segment rule": "#d97706"}
     for name, scores in score_by_model.items():
         precision, recall, _ = precision_recall_curve(y_true, scores)
         ap = average_precision_score(y_true, scores)
-        ax.plot(recall, precision, label=f"{name} (PR-AUC {ap:.3f})",
-                color=colors.get(name), linewidth=1.8)
+        ax.plot(recall[:-1], precision[:-1], drawstyle="steps-post",
+                label=f"{name} (PR-AUC {ap:.3f})", color=colors.get(name), linewidth=1.6)
     prevalence = float(np.mean(y_true))
     ax.axhline(prevalence, color="#9ca3af", linestyle="--", linewidth=1,
                label=f"No-skill prior ({prevalence:.3f})")
     ax.scatter([operating_point["recall"]], [operating_point["precision"]],
                color="#dc2626", zorder=5, s=45,
                label=f"Deployed threshold {operating_point['threshold']:.2f}")
-    ax.set_xlabel("Recall (share of churners caught)")
-    ax.set_ylabel("Precision (share of flags that are churners)")
-    ax.set_title("Precision-recall curve, held-out test set")
+    ax.set_xlabel("Recall (share of churners caught)", fontsize=9)
+    ax.set_ylabel("Precision (share of flags that are churners)", fontsize=9)
+    ax.set_title("Precision-recall curve, held-out test set", fontsize=10)
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1.02)
     ax.grid(alpha=0.3)
-    ax.legend(loc="upper right", fontsize=8)
+    ax.legend(loc="upper right", fontsize=7, labelspacing=0.3)
     fig.tight_layout()
-    fig.savefig(path, dpi=160)
+    # A small figure at a high dpi keeps the text readable when the image
+    # is placed in the report at about half the page width.
+    fig.savefig(path, dpi=200)
     plt.close(fig)
 
 
 def plot_confusion(confusion: dict, title: str, path) -> None:
     """Confusion matrix with counts."""
     matrix = np.array([[confusion["tn"], confusion["fp"]], [confusion["fn"], confusion["tp"]]])
-    fig, ax = plt.subplots(figsize=(4.4, 3.8))
+    fig, ax = plt.subplots(figsize=(3.3, 2.9))
     ax.imshow(matrix, cmap="Blues")
     labels = ["Stayed", "Churned"]
     ax.set_xticks([0, 1], labels=labels)
@@ -119,7 +128,7 @@ def plot_confusion(confusion: dict, title: str, path) -> None:
             color = "white" if value > matrix.max() / 2 else "black"
             ax.text(col, row, f"{value}", ha="center", va="center", color=color, fontsize=13)
     fig.tight_layout()
-    fig.savefig(path, dpi=160)
+    fig.savefig(path, dpi=200)
     plt.close(fig)
 
 

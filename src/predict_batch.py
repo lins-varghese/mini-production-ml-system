@@ -8,7 +8,9 @@ It reads a CSV of customers that the model has not seen, scores all rows
 in one vectorised call, logs what happened, and writes one output row per
 customer with the customer ID. It uses the same ChurnScorer as the API.
 
-Exit codes: 0 = success, 1 = input problem, 2 = scoring unavailable.
+Exit codes: 0 = success, 1 = input problem, 3 = scoring unavailable.
+(2 is left alone on purpose: Python's argument parser already exits with 2
+when the command line itself is wrong, for example a missing --input.)
 """
 import argparse
 import logging
@@ -29,25 +31,29 @@ logger = logging.getLogger("churn.batch")
 # in single rows, in which case the pipeline imputes them.
 REQUIRED_COLUMNS = ["tenure", "MonthlyCharges", "Contract"]
 
+EXIT_OK = 0
+EXIT_INPUT_PROBLEM = 1
+EXIT_SCORING_UNAVAILABLE = 3   # not 2: argparse uses 2 for a wrong command line
+
 
 def run(input_path: Path, output_path: Path) -> int:
     logger.info("Batch scoring started. Input: %s", input_path)
 
     if not input_path.exists():
         logger.error("Input file not found: %s", input_path)
-        return 1
+        return EXIT_INPUT_PROBLEM
     try:
         raw = pd.read_csv(input_path)
     except Exception as exc:
         logger.error("Could not read the input file as CSV: %s", exc)
-        return 1
+        return EXIT_INPUT_PROBLEM
     if raw.empty:
         logger.error("Input file has no rows.")
-        return 1
+        return EXIT_INPUT_PROBLEM
     missing_columns = [col for col in REQUIRED_COLUMNS if col not in raw.columns]
     if missing_columns:
         logger.error("Input file is missing required columns: %s", missing_columns)
-        return 1
+        return EXIT_INPUT_PROBLEM
     logger.info("Read %d rows and %d columns.", len(raw), raw.shape[1])
 
     # Keep a record ID for every output row.
@@ -63,7 +69,7 @@ def run(input_path: Path, output_path: Path) -> int:
         scored = scorer.score(raw)
     except ScoringUnavailable as exc:
         logger.error("Scoring unavailable: %s", exc)
-        return 2
+        return EXIT_SCORING_UNAVAILABLE
     elapsed = time.perf_counter() - started
 
     output = pd.DataFrame({config.ID_COL: ids.values})
@@ -91,7 +97,7 @@ def run(input_path: Path, output_path: Path) -> int:
                 100 * output["churn_prediction"].mean())
     logger.info("Rows with missing, unknown or clipped values: %d", rows_with_issues)
     logger.info("Output written to %s", output_path)
-    return 0
+    return EXIT_OK
 
 
 def main() -> int:

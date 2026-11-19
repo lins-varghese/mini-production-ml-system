@@ -11,6 +11,11 @@ Degradation ladder (what happens when things go wrong):
 3. Down:     the metadata file is missing too, so even the
              rule has no numbers. ScoringUnavailable is
              raised and the API turns it into HTTP 503.
+
+The scorer remembers whether the most recent scoring attempt had to use the
+fallback because the model raised an error. /health uses this, so a model
+that is loaded but crashing shows up as "degraded" and not as "ok". The
+next request that the model answers clears the flag again.
 """
 import json
 import logging
@@ -39,6 +44,9 @@ class ChurnScorer:
         self.metadata = None   # thresholds, fallback table, training facts
         self.pipeline = None   # fitted preprocessing + model
         self.load_error = None
+        # Error text of the most recent scoring attempt if the model failed
+        # and the fallback had to answer. None after a normal model answer.
+        self.last_model_error = None
         self._load()
 
     def _load(self) -> None:
@@ -63,7 +71,13 @@ class ChurnScorer:
     # ------------------------------------------------------------ status
     @property
     def model_ready(self) -> bool:
+        """The model artifact and the metadata are loaded."""
         return self.pipeline is not None and self.metadata is not None
+
+    @property
+    def model_healthy(self) -> bool:
+        """The model is loaded and did not fail on the most recent scoring attempt."""
+        return self.model_ready and self.last_model_error is None
 
     @property
     def fallback_ready(self) -> bool:
@@ -108,8 +122,10 @@ class ChurnScorer:
             scores = self.pipeline.predict_proba(features)[:, 1]
             name = self.metadata["production_model"]
             threshold = self.metadata["candidates"][name]["threshold"]
+            self.last_model_error = None   # the model answered, so it is healthy again
         except Exception as exc:
             # Graceful degradation: answer with the segment rule instead.
+            self.last_model_error = str(exc)   # remembered for /health
             logger.warning("Model scoring failed (%s). Using the fallback rule.", exc)
             try:
                 scores = segment_scores(features, self.metadata["fallback"]["segment_table"])

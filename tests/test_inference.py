@@ -136,6 +136,15 @@ def test_api_rejects_malformed_payload_with_422(client, valid_payload):
     assert body["detail"][0]["field"] == "tenure"
 
 
+def test_api_rejects_whitespace_only_contract_with_422(client, valid_payload):
+    # Contract is required. A value made only of spaces must not slip through
+    # and be imputed as if the field had been left out.
+    valid_payload["Contract"] = "   "
+    response = client.post("/predict", json=valid_payload)
+    assert response.status_code == 422
+    assert response.json()["detail"][0]["field"] == "Contract"
+
+
 def test_api_rejects_body_that_is_not_json(client):
     response = client.post("/predict", content="not json",
                            headers={"Content-Type": "application/json"})

@@ -51,7 +51,8 @@ ending in `_busy_machine.json`.
 | Training data vs test data | STABLE (largest PSI 0.018) |
 | Training data vs deliberately shifted data | ALERT (tenure PSI 2.20, MonthlyCharges PSI 1.06, PaymentMethod PSI 0.99) |
 
-**Tests:** 52 pytest tests pass.
+**Tests:** 59 pytest tests pass. On a fresh clone 57 run and 2 are skipped, because those two
+read the split files that steps 1 and 2 create.
 
 **Reproduction:** I copied only the source files to a new folder, built a new virtual
 environment from `requirements.txt` and ran the steps below in order. Every step worked and
@@ -67,7 +68,7 @@ mini-production-ml-system/
   pytest.ini
   data/
     fetch_data.py           downloads the dataset and checks its SHA-256
-    sample_batch_input.csv  50 unlabeled customers for quick demos
+    sample_batch_input.csv  50 unlabelled customers for quick demos
   artifacts/
     model_lightgbm.joblib   deployed pipeline (preprocessing + LightGBM)
     model_logreg.joblib     baseline pipeline (preprocessing + logistic regression)
@@ -117,7 +118,8 @@ Run every command below from the repository root.
 
 The trained artifacts and my reports are committed, so steps 5 to 7 and step 11 work right
 after setup. Steps 1 to 4 rebuild everything from the raw data. Two of the tests check the
-split files and are skipped until steps 1 and 2 have been run.
+split files and are skipped until steps 1 and 2 have been run, so `pytest` reports 57 passed
+and 2 skipped on a fresh clone and 59 passed after step 2.
 
 **1. Fetch the data** (downloads about 1 MB and verifies the checksum)
 
@@ -196,6 +198,10 @@ Stop the server with Ctrl+C.
 python -m src.predict_batch --input data/sample_batch_input.csv --output reports/batch_predictions_sample.csv
 ```
 
+Exit codes: 0 = success, 1 = input problem (file missing, not a CSV, empty, or a required
+column missing), 3 = scoring unavailable (no model and no fallback). Code 2 is not used by
+the script, because Python's argument parser already exits with 2 for a wrong command line.
+
 **8. Benchmarks**
 
 ```
@@ -246,16 +252,22 @@ second path. Both use the same `ChurnScorer` class, so they cannot disagree.
   without the label.
 
 **Class imbalance.** About 26.5% of customers churn. I use class weights in the loss and then
-tune the decision threshold. I do not oversample. Because of the class weights the output is
-a risk score for ranking customers, not a calibrated probability.
+tune the decision threshold. I do not oversample: copied churners add no new information, and
+copies made before cross-validation can land on both sides of a fold and flatter the tuning
+scores. Because of the class weights the output is a risk score for ranking customers, not a
+calibrated probability.
 
 **Threshold.** The default 0.50 gives high recall but many false alarms. I pick the threshold
 that gives the best F1-macro on the validation set, which is 0.66 for LightGBM.
 
 **Fallback ladder.**
-1. Normal: the model answers, `served_by` is `model`.
-2. Model missing or crashing: a segment rule (training churn rate by contract type and tenure
-   band) answers, `served_by` is `fallback`, and `/health` reports `degraded`.
+1. Normal: the model answers, `served_by` is `model`, and `/health` reports `ok`.
+2. Model file not loaded, or the model raises an error while scoring: a segment rule (training
+   churn rate by contract type and tenure band) answers and `served_by` is `fallback`.
+   `/health` reports `degraded` while the model file is not loaded. For a model that is loaded
+   but crashing, `/health` looks at the most recent scoring attempt: it reports `degraded`
+   after a request that had to use the fallback, and goes back to `ok` as soon as the model
+   answers a request again. `model_loaded` stays `true` in that case.
 3. Metadata missing too: `/predict` returns HTTP 503 with a clear message and `/health`
    reports `down`.
 
@@ -266,7 +278,12 @@ that gives the best F1-macro on the validation set, which is 0.66 for LightGBM.
 | Missing optional field or null | Scores the row, imputes the value, adds a warning |
 | Category never seen in training | Scores the row, encoder ignores the value, adds a warning |
 | Number outside the training range | Clips it to the training range, scores, adds a warning |
-| Wrong type, negative number, NaN, missing required field, unknown field, broken JSON | Rejects with HTTP 422 and a readable reason |
+| Text where a number is expected ("twelve"), a tenure with a fraction, a negative number, NaN, a missing required field, a `Contract` that is empty or only spaces, an unknown field, broken JSON | Rejects with HTTP 422 and a readable reason |
+
+The schema uses Pydantic's default (lax) mode, so it is not strict about types. For `tenure`,
+`MonthlyCharges` and `TotalCharges` a number sent as text (`"12"`) is converted to a number, and
+`true` / `false` are read as 1 / 0. `SeniorCitizen` accepts only 0 or 1 (`true` / `false` are
+read as 1 / 0, the text `"1"` is rejected).
 
 **Monitoring thresholds.**
 
@@ -274,7 +291,7 @@ that gives the best F1-macro on the validation set, which is 0.66 for LightGBM.
 |---|---|---|
 | PSI per feature and for the model score | 0.10 | 0.25: alert. Two weekly alerts in a row: retrain |
 | KS test on numeric features and the score | - | statistic at least 0.10 with p below 0.01 |
-| PR-AUC on newly labeled customers | drop of 0.03 | drop of 0.05 from validation: retrain |
+| PR-AUC on newly labelled customers (at least 1,000 of them) | drop of 0.03 | drop of 0.05 from validation: retrain |
 | p95 latency | 60 ms | 100 ms for 10 minutes: alert |
 | HTTP 5xx rate | 0.5% | 1% over 5 minutes: alert |
 | Fallback share of answers | any | 1% over 15 minutes: alert |
@@ -307,3 +324,10 @@ to commit `1fd6fd7` and verified with SHA-256
 - Most of the request time is spent building and checking a one-row pandas table, not in the
   model. A plain dictionary path for single requests would be faster, but I kept one shared
   code path for training, batch and API to avoid training-serving skew.
+- Category text is compared exactly, including upper and lower case. `month-to-month` is not
+  the known category `Month-to-month`: it is scored as an unknown category with a warning, and
+  for an important field such as `Contract` that can change the score a lot. Normalising case
+  before the check would be the next step.
+- The drift check compares scores on new data with the model's scores on its own training
+  rows. Those reference scores are in-sample, so they can be a little sharper than scores on
+  new customers. Scores on the validation partition would be a cleaner reference.

@@ -14,8 +14,11 @@ each (contract type, tenure band) group. It only needs two fields.
 import numpy as np
 import pandas as pd
 
-# Tenure bands in months. Churn is highest in the first year.
-TENURE_BANDS = [(0, 12, "0-12"), (13, 24, "13-24"), (25, 48, "25-48"), (49, None, "49+")]
+# Tenure bands in months, as (upper bound, label). Churn is highest in the
+# first year. Only upper bounds are compared, so a value with a fraction
+# such as 12.5 (possible in a batch file) cannot fall between two bands.
+TENURE_BANDS = [(12, "0-12"), (24, "13-24"), (48, "25-48")]
+LAST_BAND = "49+"
 
 # A group with fewer training rows than this uses the overall churn rate.
 MIN_GROUP_SIZE = 30
@@ -23,12 +26,12 @@ MIN_GROUP_SIZE = 30
 
 def tenure_band(tenure) -> str:
     """Return the tenure band label for one tenure value in months."""
-    if tenure is None or pd.isna(tenure):
+    if tenure is None or pd.isna(tenure) or tenure < 0:
         return "unknown"
-    for low, high, label in TENURE_BANDS:
-        if tenure >= low and (high is None or tenure <= high):
+    for upper, label in TENURE_BANDS:
+        if tenure <= upper:
             return label
-    return "unknown"
+    return LAST_BAND
 
 
 def _segment_keys(features: pd.DataFrame) -> pd.Series:

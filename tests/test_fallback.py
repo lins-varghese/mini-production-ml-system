@@ -9,7 +9,11 @@ from src.inference import ChurnScorer, ScoringUnavailable
 # -------------------------------------------------------- the rule itself
 @pytest.mark.parametrize(
     "tenure, expected",
-    [(0, "0-12"), (12, "0-12"), (13, "13-24"), (48, "25-48"), (49, "49+"), (None, "unknown")],
+    [(0, "0-12"), (12, "0-12"), (13, "13-24"), (48, "25-48"), (49, "49+"), (None, "unknown"),
+     # A tenure with a fraction (possible in a batch file) must not fall between two bands.
+     (12.5, "13-24"), (48.5, "49+"),
+     # A negative tenure is not a real value and stays unknown.
+     (-1, "unknown")],
 )
 def test_tenure_band(tenure, expected):
     assert tenure_band(tenure) == expected
@@ -76,6 +80,28 @@ def test_api_answers_from_fallback_and_reports_degraded(client, valid_payload):
     assert response.json()["served_by"] == "fallback"
 
 
+def test_health_is_degraded_after_a_model_crash_and_recovers(client, valid_payload, broken_model):
+    # The model file is loaded, but the model raises while scoring.
+    api_scorer = client.app.state.scorer
+    real_pipeline = api_scorer.pipeline
+    api_scorer.pipeline = broken_model
+    try:
+        crashed = client.post("/predict", json=valid_payload)
+        health_after_crash = client.get("/health").json()
+    finally:
+        api_scorer.pipeline = real_pipeline
+
+    assert crashed.status_code == 200
+    assert crashed.json()["served_by"] == "fallback"
+    assert health_after_crash["status"] == "degraded"
+    assert health_after_crash["model_loaded"] is True   # loaded, but not healthy
+
+    # The next request that the model answers clears the degraded state.
+    recovered = client.post("/predict", json=valid_payload)
+    assert recovered.json()["served_by"] == "model"
+    assert client.get("/health").json()["status"] == "ok"
+
+
 def test_api_returns_503_when_nothing_can_score(client, valid_payload):
     api_scorer = client.app.state.scorer
     real_pipeline, real_metadata = api_scorer.pipeline, api_scorer.metadata
@@ -89,3 +115,22 @@ def test_api_returns_503_when_nothing_can_score(client, valid_payload):
     assert health["status"] == "down"
     assert response.status_code == 503
     assert response.json()["error"] == "scoring_unavailable"
+
+
+# -------------------------------------------------------- batch exit codes
+def test_batch_script_exit_codes(tmp_path, monkeypatch):
+    from src import predict_batch
+
+    # 1 = input problem: the input file does not exist.
+    code = predict_batch.run(tmp_path / "no_such_file.csv", tmp_path / "out.csv")
+    assert code == predict_batch.EXIT_INPUT_PROBLEM == 1
+
+    # 3 = scoring unavailable: a readable input file, but no artifacts at all.
+    input_file = tmp_path / "customers.csv"
+    pd.DataFrame({"tenure": [5], "MonthlyCharges": [70.0], "Contract": ["One year"]}).to_csv(input_file, index=False)
+    empty_dir = tmp_path / "no_artifacts"
+    empty_dir.mkdir()
+    monkeypatch.setattr(predict_batch, "ChurnScorer", lambda: ChurnScorer(artifact_dir=empty_dir))
+    code = predict_batch.run(input_file, tmp_path / "out.csv")
+    assert code == predict_batch.EXIT_SCORING_UNAVAILABLE == 3
+    assert not (tmp_path / "out.csv").exists()   # nothing is written when nothing can score

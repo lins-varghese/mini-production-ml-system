@@ -38,6 +38,7 @@ def test_missing_required_field_is_rejected(valid_payload, field):
         ("TotalCharges", -1.0),
         ("SeniorCitizen", 7),              # only 0 or 1 allowed
         ("Contract", ""),                  # empty text
+        ("Contract", "   "),               # only spaces is as good as empty
     ],
 )
 def test_bad_values_are_rejected(valid_payload, field, bad_value):

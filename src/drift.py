@@ -101,6 +101,10 @@ def drift_report(reference_raw: pd.DataFrame, current_raw: pd.DataFrame, scorer=
 
     # Drift of the model output itself. It needs no labels, so it is the
     # earliest signal available in production.
+    # Known limitation: when the reference file is the training data, the
+    # reference scores are in-sample (the model has seen those rows), so
+    # they can be a little sharper than scores on new customers. Scores on
+    # the validation partition would be a cleaner reference.
     if scorer is not None and scorer.model_ready:
         ref_scores = scorer.score(reference_raw)["churn_score"]
         cur_scores = scorer.score(current_raw)["churn_score"]
@@ -130,7 +134,9 @@ def make_shifted_sample(raw: pd.DataFrame, seed: int = config.RANDOM_SEED) -> pd
 
     The story: a price rise, a campaign that moves long-contract customers
     to monthly plans, a younger customer base, and a new payment method
-    that did not exist when the model was trained.
+    that did not exist when the model was trained. TotalCharges and all
+    other columns are left as they are, so the report should stay stable
+    for them and point only at the columns that moved.
     """
     rng = np.random.default_rng(seed)
     shifted = raw.copy()
